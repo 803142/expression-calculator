@@ -41,21 +41,24 @@ function expressionCalculator(expr) {
 				if (+b === 0) {
 					throw new Error("TypeError: Division by zero.");
 				}
-				return +a / +b;
+				return (+a / +b === -0)? '-0': (a<0 & b<0)?'+'+a / +b:+a / +b;
 			}
 		},
 		{
 			sign: "*",
 			funct: expPart => {
-				[a, b] = expPart.split("*");
-				return +a * +b;
+				const [a, b] = expPart.split("*");
+				const str = ''+(+a * +b);
+				console.log(a, b, expPart, str)
+				return (+a * +b === -0)? '-0': (a<0 & b<0)?'+'+a * +b : +a * +b ;
 			}
 		},
 		{
 			sign: "-",
 			funct: expPart => {
 				[a = 0, b, c = 0] = expPart.split("-");
-				return +a - +b - +c;
+				console.log(a, b, expPart, +a - +b - +c)
+				return (+a - +b - +c === -0)? '-0':  +a - +b - +c;
 			}
 		},
 		{
@@ -81,14 +84,20 @@ function expressionCalculator(expr) {
 	}
 
 	do {
-		expression = expression.replace(/\(-?[0-9]+(\.)?([0-9]+)?\)/g, expr => {
+		if (expression.match(/\(-?[0-9]+(\.)?([0-9]+)?\)/g)){
+			expression = expression.replace(/\(-?[0-9]+(\.)?([0-9]+)?\)/g, expr => {
 			return expr.substring(1, expr.length - 1);
-		});
-		if (expression.match(/(--)/g)){
-			expression = expression.replace(/\-\-/g, '+');
-			console.log({ expression },1);
-		}
+			});
+
+		};
+		
 		while (expression.match(/\((?!\()[0-9/\-+*.]+\)/g)){
+			if (expression.match('--')){
+				expression = expression.replace('--', '+');
+				expression = expression.replace('+-', '-');
+				expression = expression.replace('-+', '-');
+				expression = expression.replace('++', '+');
+			};
 			expression = expression.replace(/\((?!\()[0-9/\-+*.]+\)/g, expr => {
 				console.log({ expr },simpleString(expr.substring(1, expr.length - 1)));
 				return simpleString(expr.substring(1, expr.length - 1));
@@ -97,9 +106,10 @@ function expressionCalculator(expr) {
 		console.log({ expression },simpleString(expression));
 		if (expression.match(/e/g)) return 0;
 	} while (expression.match(/\(/g));
-
-	//result = multing(expression);
-
+		expression = expression.replace('--', '+');
+		expression = expression.replace('+-', '-');
+		expression = expression.replace('-+', '-');
+		expression = expression.replace('++', '+');
 	return +simpleString(expression);
 }
 
